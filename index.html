@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tercile — Attribute analytics for Shopify stores</title>
+<meta name="description" content="Tercile reads every product page in your Shopify store — text, tags, metafields, images — and splits your revenue by every attribute that matters: colour, material, fit, shape, designer. Fashion, jewelry, accessories, any catalogue.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Archivo+Expanded:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0b0b0b;
+    --paper: #f2f1ec;
+    --card: #ffffff;
+    --pos: #007a33;
+    --neg: #e30613;
+    --warn: #f5c400;
+    --action: #0038d0;
+    --muted: #6b6a64;
+    --bar: #e3e2db;
+    --rule: 4px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: Archivo, Helvetica, Arial, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  ::selection { background: var(--warn); color: var(--ink); }
+
+  /* ---------- shared ---------- */
+  .label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+  }
+  .label-muted { color: var(--muted); }
+  .rule { border: none; border-top: var(--rule) solid var(--ink); }
+  section { border-bottom: var(--rule) solid var(--ink); position: relative; }
+  .pad { padding: clamp(24px, 5vw, 72px) clamp(20px, 5vw, 72px); }
+
+  /* reveal on scroll */
+  .rv { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
+  .rv.in { opacity: 1; transform: none; }
+  .rv-d1 { transition-delay: .1s; } .rv-d2 { transition-delay: .2s; }
+  .rv-d3 { transition-delay: .3s; } .rv-d4 { transition-delay: .4s; }
+
+  /* ---------- stripe + top ---------- */
+  .stripe { display: flex; height: 8px; }
+  .stripe i:nth-child(1) { flex: 1.2; background: var(--neg); }
+  .stripe i:nth-child(2) { flex: 1; background: var(--action); }
+  .stripe i:nth-child(3) { flex: 0.8; background: var(--warn); }
+  .top {
+    display: flex; justify-content: space-between; align-items: center; gap: 16px;
+    padding: 16px clamp(20px, 5vw, 72px);
+    border-bottom: var(--rule) solid var(--ink);
+    flex-wrap: wrap;
+  }
+  .brand { font-weight: 900; font-size: 16px; letter-spacing: 0.08em; text-transform: uppercase; display: flex; align-items: center; gap: 10px; }
+  .brand svg { display: block; }
+  .top nav { display: flex; gap: 22px; flex-wrap: wrap; }
+  .top nav a {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink); text-decoration: none; padding-bottom: 2px; border-bottom: 2px solid transparent;
+  }
+  .top nav a:hover { border-bottom-color: var(--ink); }
+  .top nav a.cta { color: var(--action); }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--action); outline-offset: 2px; }
+
+  /* ---------- hero ---------- */
+  .hero { overflow: hidden; }
+  .hero-grid {
+    display: grid; grid-template-columns: 1fr auto; gap: clamp(24px, 4vw, 64px);
+    align-items: end;
+    padding: clamp(40px, 7vw, 110px) clamp(20px, 5vw, 72px) clamp(32px, 5vw, 72px);
+  }
+  .hero h1 {
+    font-family: "Archivo Expanded", Archivo, sans-serif;
+    font-weight: 900;
+    font-size: clamp(44px, 10.5vw, 160px);
+    line-height: 0.88;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+  }
+  .hero h1 .ln { display: block; overflow: hidden; }
+  .hero h1 .ln span { display: inline-block; transform: translateY(110%); animation: rise .9s cubic-bezier(.16,1,.3,1) forwards; }
+  .hero h1 .ln:nth-child(2) span { animation-delay: .12s; }
+  .hero h1 .ln:nth-child(3) span { animation-delay: .24s; color: var(--pos); }
+  .hero h1 .ln-sub { font-size: 0.42em; letter-spacing: -0.015em; margin-top: 0.35em; }
+  @keyframes rise { to { transform: none; } }
+  .hero-sub {
+    max-width: 56ch; font-size: clamp(15px, 1.6vw, 19px); line-height: 1.55; font-weight: 500;
+    margin-top: clamp(20px, 3vw, 36px);
+  }
+  .hero-sub b { font-weight: 800; }
+  .hero-ctas { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+  .btn {
+    display: inline-block; font-family: inherit; font-size: 12px; font-weight: 800;
+    letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none; cursor: pointer;
+    border: 3px solid var(--ink); border-radius: 0; padding: 13px 22px; color: var(--ink); background: transparent;
+    transition: background .15s, color .15s;
+  }
+  .btn:hover { background: var(--ink); color: var(--paper); }
+  .btn.primary { background: var(--action); border-color: var(--action); color: #fff; }
+  .btn.primary:hover { background: var(--ink); border-color: var(--ink); }
+
+  /* animated logo bars */
+  .heromark { display: flex; align-items: flex-end; gap: 0; }
+  .heromark svg { width: clamp(120px, 16vw, 230px); height: auto; display: block; }
+  .heromark rect.b { transform-origin: bottom; transform: scaleY(0); animation: grow 1s cubic-bezier(.16,1,.3,1) forwards; }
+  .heromark rect.b2 { animation-delay: .18s; }
+  .heromark rect.b3 { animation-delay: .36s; }
+  @keyframes grow { to { transform: scaleY(1); } }
+
+  /* marquee */
+  .marquee { border-top: var(--rule) solid var(--ink); overflow: hidden; padding: 12px 0; white-space: nowrap; }
+  .marquee-track { display: inline-flex; gap: 0; animation: slide 36s linear infinite; }
+  .marquee span {
+    font-weight: 900; font-size: clamp(14px, 1.8vw, 22px); letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 0 18px; border-right: 2px solid var(--ink);
+  }
+  .marquee span:nth-child(4n) { color: var(--pos); }
+  .marquee span:nth-child(7n) { color: var(--neg); }
+  @keyframes slide { to { transform: translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce) {
+    .marquee-track { animation: none; }
+    .rv { opacity: 1; transform: none; transition: none; }
+    .heromark rect.b { animation-duration: .01s; }
+    .hero h1 .ln span { animation-duration: .01s; }
+  }
+
+  /* ---------- section heads ---------- */
+  .shead { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: clamp(24px, 4vw, 48px); }
+  .shead h2 {
+    font-family: "Archivo Expanded", Archivo, sans-serif;
+    font-weight: 900; font-size: clamp(28px, 4.6vw, 64px); line-height: 0.95;
+    letter-spacing: -0.02em; text-transform: uppercase; max-width: 18ch;
+  }
+  .shead .n { font-weight: 900; font-size: clamp(28px, 4.6vw, 64px); color: var(--bar); -webkit-text-stroke: 2px var(--ink); }
+
+  /* ---------- timing ---------- */
+  .tgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); border-top: 2px solid var(--ink); }
+  .tpanel { border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink); padding: 16px 18px 18px; }
+  .tpanel:last-child { border-right: none; }
+  .tt { display: flex; justify-content: space-between; gap: 10px; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 14px; flex-wrap: wrap; }
+  .tspark { display: flex; align-items: flex-end; gap: 3px; height: 72px; }
+  .tspark i { flex: 1; background: var(--ink); height: 1px; transition: height 1s cubic-bezier(.16,1,.3,1); }
+  .tspark i.hot { background: var(--pos); }
+  .tspark i.cool { background: var(--action); }
+  .tmonths { display: flex; gap: 3px; margin-top: 6px; }
+  .tmonths span { flex: 1; font-size: 8px; font-weight: 700; color: var(--muted); text-align: center; }
+
+  /* ---------- insight cards ---------- */
+  .icards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1px; background: var(--ink); border: 2px solid var(--ink); }
+  .icard { background: var(--card); padding: 16px 18px 18px; border-top: 6px solid var(--muted); }
+  .icard.opportunity { border-top-color: var(--pos); }
+  .icard.inefficiency { border-top-color: var(--neg); }
+  .icard.watch { border-top-color: var(--warn); }
+  .icard .k { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 8px; }
+  .icard.opportunity .k { color: var(--pos); }
+  .icard.inefficiency .k { color: var(--neg); }
+  .icard.watch .k { color: #8a6d00; }
+  .icard .t { font-weight: 900; font-size: 17px; line-height: 1.1; letter-spacing: -0.01em; margin-bottom: 8px; }
+  .icard .d { font-size: 12.5px; line-height: 1.55; color: var(--muted); }
+  .icard .m { display: inline-block; margin-top: 10px; font-size: 11px; font-weight: 700; border: 1px solid var(--ink); padding: 3px 8px; letter-spacing: 0.04em; }
+
+  /* ---------- dataset metric strip ---------- */
+  .dmetrics { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .dmetrics i { font-style: normal; font-size: 10.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; border: 2px solid var(--ink); padding: 4px 9px; }
+  .dmetrics i.soon { border-style: dashed; border-width: 1px; color: var(--muted); font-weight: 700; }
+
+  /* ---------- verticals ---------- */
+  .verts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); border-top: 2px solid var(--ink); }
+  .vert { border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink); padding: 0 0 18px; display: flex; flex-direction: column; }
+  .vert:last-child { border-right: none; }
+  .vert svg { width: 100%; height: auto; display: block; border-bottom: 2px solid var(--ink); }
+  .vert b { font-size: 14px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; padding: 14px 16px 6px; }
+  .vert span { font-size: 11px; line-height: 1.7; color: var(--muted); padding: 0 16px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 600; }
+  .vert i { font-style: normal; font-size: 12px; font-weight: 700; padding: 10px 16px 0; margin-top: auto; }
+  .vert:nth-child(1) i { color: var(--neg); }
+  .vert:nth-child(2) i { color: var(--pos); }
+  .vert:nth-child(3) i { color: var(--action); }
+
+  /* ---------- reader (what it reads) ---------- */
+  .reader { display: grid; grid-template-columns: 1fr 1fr; border-top: 2px solid var(--ink); }
+  @media (max-width: 880px) { .reader { grid-template-columns: 1fr; } }
+  .reader-src { padding: clamp(20px, 3vw, 40px); border-right: 2px solid var(--ink); position: relative; overflow: hidden; background: var(--card); }
+  @media (max-width: 880px) { .reader-src { border-right: none; border-bottom: 2px solid var(--ink); } }
+  .scanline {
+    position: absolute; left: 0; right: 0; height: 3px; background: var(--action); top: 0;
+    animation: scan 5s ease-in-out infinite; box-shadow: 0 0 0 1px var(--action);
+  }
+  @keyframes scan { 0%,100% { top: 4%; } 50% { top: 94%; } }
+  .psrc-title { font-weight: 900; font-size: clamp(18px, 2.2vw, 26px); text-transform: uppercase; letter-spacing: -0.01em; }
+  .psrc-kind { margin: 14px 0 6px; }
+  .psrc-body { font-size: 13.5px; line-height: 1.65; color: var(--muted); max-width: 52ch; }
+  .psrc-body em { color: var(--ink); font-style: normal; font-weight: 700; background: var(--warn); padding: 0 3px; }
+  .psrc-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .psrc-tags i { font-style: normal; font-size: 11px; font-weight: 700; border: 1px solid var(--ink); padding: 3px 8px; letter-spacing: 0.06em; }
+  .psrc-meta { font-size: 12px; margin-top: 8px; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .psrc-img {
+    margin-top: 16px; height: 120px; background:
+      repeating-linear-gradient(45deg, var(--bar), var(--bar) 10px, var(--paper) 10px, var(--paper) 20px);
+    border: 2px solid var(--ink); display: flex; align-items: center; justify-content: center;
+  }
+  .reader-out { padding: clamp(20px, 3vw, 40px); display: flex; flex-direction: column; justify-content: center; gap: 10px; }
+  .xrow {
+    display: grid; grid-template-columns: 110px 1fr 56px; gap: 12px; align-items: center;
+    border-top: 1px solid var(--ink); padding: 9px 0;
+    opacity: 0; transform: translateX(16px);
+  }
+  .xrow.on { animation: xin .5s cubic-bezier(.16,1,.3,1) forwards; }
+  @keyframes xin { to { opacity: 1; transform: none; } }
+  .xrow .a { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+  .xrow .v { font-weight: 900; font-size: clamp(15px, 1.8vw, 20px); text-transform: uppercase; letter-spacing: 0.02em; }
+  .xrow .c { font-size: 11px; font-weight: 700; text-align: right; }
+  .xrow .c.hi { color: var(--pos); }
+  .xrow .c.mid { background: var(--warn); padding: 2px 5px; }
+
+  /* ---------- wall demo ---------- */
+  .wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); border-top: 2px solid var(--ink); }
+  .cell { border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink); padding: 16px 18px 20px; background: var(--paper); min-width: 0; }
+  .cell-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+  .cell-h b { font-size: 13px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; }
+  .cell-h i { font-style: normal; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .wrow { display: grid; grid-template-columns: minmax(58px,0.8fr) minmax(60px,2fr) 44px 40px; gap: 8px; align-items: center; padding: 5px 0; }
+  .wrow .l { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mb { height: 13px; background: var(--bar); position: relative; }
+  .mb i { position: absolute; inset: 0 auto 0 0; background: var(--ink); width: 0; transition: width 1.1s cubic-bezier(.16,1,.3,1); }
+  .mb i.g { background: var(--pos); }
+  .mb i.r { background: var(--neg); }
+  .wrow .p { font-size: 11px; font-weight: 700; text-align: right; }
+  .wrow .ix { font-size: 10.5px; font-weight: 800; text-align: right; }
+  .wrow .ix.up { color: var(--pos); }
+  .wrow .ix.dn { color: var(--neg); text-decoration: underline; text-decoration-thickness: 2px; }
+  .wrow .ix.na { color: var(--muted); font-weight: 500; }
+
+  /* ---------- gap chart ---------- */
+  .gapwrap { max-width: 980px; }
+  .gaprow { display: grid; grid-template-columns: minmax(80px, 130px) 1fr 76px; gap: 14px; align-items: center; padding: 9px 0; border-top: 1px solid var(--ink); }
+  .gaprow .l { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; }
+  .gapbar { position: relative; height: 22px; background: var(--bar); }
+  .gapbar::before { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 3px; background: var(--ink); z-index: 1; }
+  .gapbar i { position: absolute; top: 0; bottom: 0; width: 0; transition: width 1s cubic-bezier(.16,1,.3,1); }
+  .gapbar i.pos { left: 50%; background: var(--pos); }
+  .gapbar i.neg { right: 50%; background: var(--neg); }
+  .gaprow .d { font-size: 13px; font-weight: 800; text-align: right; }
+  .gaprow .d.pos { color: var(--pos); } .gaprow .d.neg { color: var(--neg); }
+  .gaplegend { display: flex; justify-content: space-between; margin-top: 14px; }
+  .gaplegend .pos { color: var(--pos); } .gaplegend .neg { color: var(--neg); }
+
+  /* ---------- verdict band ---------- */
+  .verdicts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); border-top: 2px solid var(--ink); }
+  .verdict { padding: clamp(24px, 3.5vw, 48px) clamp(20px, 3vw, 40px); border-right: 1px solid var(--ink); }
+  .verdict:last-child { border-right: none; }
+  @media (max-width: 760px) { .verdict { border-right: none; border-bottom: 1px solid var(--ink); } }
+  .verdict .big { font-family: "Archivo Expanded", Archivo, sans-serif; font-weight: 900; font-size: clamp(26px, 3.4vw, 44px); letter-spacing: -0.01em; }
+  .verdict .big.buy { color: var(--pos); }
+  .verdict .big.red { color: var(--neg); text-decoration: underline; text-decoration-thickness: 4px; }
+  .verdict .big.hold { color: var(--muted); }
+  .verdict p { margin-top: 12px; font-size: 13.5px; line-height: 1.6; color: var(--muted); max-width: 36ch; }
+  .verdict p b { color: var(--ink); }
+
+  /* ---------- counters ---------- */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); border-top: 2px solid var(--ink); }
+  .stat { padding: clamp(24px, 3.5vw, 44px) clamp(20px, 3vw, 40px); border-right: 1px solid var(--ink); }
+  .stat:last-child { border-right: none; }
+  @media (max-width: 760px) { .stat { border-right: none; border-bottom: 1px solid var(--ink); } }
+  .stat .v { font-family: "Archivo Expanded", Archivo, sans-serif; font-weight: 900; font-size: clamp(40px, 6vw, 84px); line-height: 0.9; letter-spacing: -0.02em; }
+  .stat .v em { font-style: normal; color: var(--pos); }
+  .stat .k { margin-top: 12px; }
+
+  /* ---------- sovereignty ---------- */
+  .sov { display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(24px, 4vw, 64px); align-items: center; }
+  @media (max-width: 880px) { .sov { grid-template-columns: 1fr; } }
+  .sov h3 { font-family: "Archivo Expanded", Archivo, sans-serif; font-weight: 900; font-size: clamp(24px, 3.4vw, 46px); line-height: 1; text-transform: uppercase; letter-spacing: -0.01em; }
+  .sov h3 em { font-style: normal; color: var(--action); }
+  .sov p { margin-top: 16px; font-size: 14.5px; line-height: 1.65; color: var(--muted); max-width: 52ch; }
+  .sov p b { color: var(--ink); }
+  .queue { background: var(--card); border: 2px solid var(--ink); }
+  .qrow { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 13px 16px; border-bottom: 1px solid var(--ink); flex-wrap: wrap; }
+  .qrow:last-child { border-bottom: none; }
+  .qrow .w { font-size: 12.5px; font-weight: 700; }
+  .qrow .w small { display: block; font-weight: 500; color: var(--muted); font-size: 11px; margin-top: 2px; }
+  .qconf { font-size: 10px; font-weight: 800; background: var(--warn); padding: 2px 6px; letter-spacing: 0.06em; }
+  .qbtns { display: flex; gap: 6px; }
+  .qbtns span { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; border: 2px solid var(--ink); padding: 4px 9px; cursor: default; }
+  .qbtns .ok { background: var(--pos); border-color: var(--pos); color: #fff; }
+  .qbtns .no { color: var(--neg); border-color: var(--neg); }
+
+  /* ---------- pricing ---------- */
+  .plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); border-top: 2px solid var(--ink); }
+  .plan { padding: clamp(24px, 3.5vw, 48px) clamp(20px, 3vw, 40px); border-right: 1px solid var(--ink); display: flex; flex-direction: column; gap: 0; }
+  .plan:last-child { border-right: none; }
+  @media (max-width: 880px) { .plan { border-right: none; border-bottom: 1px solid var(--ink); } }
+  .plan.hot { background: var(--ink); color: var(--paper); }
+  .plan.hot .label-muted { color: #a3a29a; }
+  .plan .name { font-weight: 900; font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; }
+  .plan .price { font-family: "Archivo Expanded", Archivo, sans-serif; font-weight: 900; font-size: clamp(40px, 5vw, 64px); margin: 18px 0 4px; letter-spacing: -0.02em; }
+  .plan .price small { font-size: 14px; font-weight: 700; letter-spacing: 0.04em; }
+  .plan ul { list-style: none; margin-top: 20px; }
+  .plan li { font-size: 13px; line-height: 1.5; padding: 8px 0 8px 22px; border-top: 1px solid currentColor; position: relative; }
+  .plan li::before { content: "→"; position: absolute; left: 0; font-weight: 900; }
+  .plan .beta { display: inline-block; background: var(--warn); color: var(--ink); font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 8px; margin-top: 14px; align-self: flex-start; }
+
+  /* ---------- final cta ---------- */
+  .final { text-align: left; }
+  .final h2 {
+    font-family: "Archivo Expanded", Archivo, sans-serif; font-weight: 900;
+    font-size: clamp(36px, 8vw, 120px); line-height: 0.9; text-transform: uppercase; letter-spacing: -0.03em;
+  }
+  .final h2 em { font-style: normal; color: var(--neg); text-decoration: underline; text-decoration-thickness: clamp(4px, 0.8vw, 10px); }
+  .final p { margin-top: 20px; font-size: 15px; max-width: 54ch; line-height: 1.6; }
+
+  /* ---------- footer ---------- */
+  footer { padding: 20px clamp(20px, 5vw, 72px) 40px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  footer .label-muted a { color: var(--muted); }
+  footer a { color: var(--ink); }
+</style>
+</head>
+<body>
+
+<div class="stripe" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<header class="top">
+  <div class="brand">
+    <svg width="26" height="26" viewBox="0 0 120 120" aria-hidden="true">
+      <rect x="10" y="62" width="26" height="43" fill="#0b0b0b"/>
+      <rect x="47" y="42" width="26" height="63" fill="#0b0b0b"/>
+      <rect x="84" y="15" width="26" height="90" fill="#007a33"/>
+      <rect x="6" y="105" width="108" height="6" fill="#0b0b0b"/>
+    </svg>
+    Tercile
+  </div>
+  <nav>
+    <a href="#reads">What it reads</a>
+    <a href="#segments">Segments</a>
+    <a href="#gap">The gap</a>
+    <a href="#insights">Insights</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#beta" class="cta">Get early access</a>
+  </nav>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="hero-grid">
+    <div>
+      <h1>
+        <span class="ln"><span>Segment</span></span>
+        <span class="ln"><span>everything.</span></span>
+        <span class="ln ln-sub"><span>See every opportunity.</span></span>
+      </h1>
+      <p class="hero-sub">
+        If wool is 30% of your rail but 50% of your sales, you should be buying more wool.
+        Tercile reads every product page in your store — <b>descriptions, tags, metafields,
+        titles</b>, and soon the images themselves — and splits revenue, sell-through and
+        returns by every attribute a buyer thinks in.
+        Colour. Fabric. Fit. Construction. The model it was shot on. Your strongest segments,
+        your weakest, and every gap between shelf and demand.
+      </p>
+      <div class="hero-ctas">
+        <a class="btn primary" href="#beta">Join the beta — free</a>
+        <a class="btn" href="#reads">See how it works</a>
+      </div>
+    </div>
+    <div class="heromark" aria-hidden="true">
+      <svg viewBox="0 0 120 120">
+        <rect class="b b1" x="10" y="62" width="26" height="43" fill="#0b0b0b"/>
+        <rect class="b b2" x="47" y="42" width="26" height="63" fill="#0b0b0b"/>
+        <rect class="b b3" x="84" y="15" width="26" height="90" fill="#007a33"/>
+        <rect x="6" y="105" width="108" height="6" fill="#0b0b0b"/>
+      </svg>
+    </div>
+  </div>
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track" id="mq"></div>
+  </div>
+</section>
+
+<!-- ============ INSIGHT CARDS ============ -->
+<section id="insights" class="pad">
+  <div class="shead rv">
+    <h2>Decisions, not dashboards.</h2>
+    <span class="n">01</span>
+  </div>
+  <p class="rv rv-d1" style="max-width:62ch; font-size:14.5px; line-height:1.65; color:var(--muted); margin-bottom:28px;">
+    Tercile builds a dataset most brands never have — every attribute × every order × every
+    session × every day — then an AI analyst reads it and hands you the conclusions as cards.
+    <b style="color:var(--ink)">Three to ten per page, only when they're earned.</b> No padding, ever.
+    And the big ones can come to you — an insight digest by email, weekly or monthly, your call.
+  </p>
+  <div class="dmetrics rv rv-d1" aria-label="Metrics in the dataset">
+    <i>Revenue</i><i>Units</i><i>AOV</i><i>Full-price share</i><i>Avg discount</i><i>Return rate</i><i>Sell-through speed</i><i>Demand index</i><i class="soon">Views *</i><i class="soon">Add-to-cart *</i><i class="soon">Conversion *</i><i class="soon">Profit †</i><i class="soon">Margin rate †</i>
+  </div>
+  <p class="rv rv-d1" style="font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); margin-bottom:24px;">* with the storefront pixel, coming in beta &nbsp;·&nbsp; † when unit costs live in Shopify</p>
+  <div class="icards rv rv-d2">
+    <div class="icard opportunity">
+      <div class="k">Opportunity · colour</div>
+      <div class="t">Black outsells its shelf 1.6 to 1</div>
+      <div class="d">Black holds 36% of your assortment but takes 59% of revenue, nearly all at full
+      price. The strongest signal in your catalogue — deepen the black buy before AW ordering closes.</div>
+      <span class="m">index 1.63 · 94% full-price</span>
+    </div>
+    <div class="icard opportunity">
+      <div class="k">Opportunity · shoot</div>
+      <div class="t">Amélie sells the clothes</div>
+      <div class="d">Styles shot on Amélie run an index of 1.52; flat-lay shots run 0.58 on the same
+      categories. Rebook her for the next campaign and reshoot the flat-lay best-sellers.</div>
+      <span class="m">index 1.52 vs 0.58</span>
+    </div>
+    <div class="icard inefficiency">
+      <div class="k">Inefficiency · fabric</div>
+      <div class="t">Viscose only moves at a discount</div>
+      <div class="d">Viscose sits on 16% of your shelf, returns 7% of revenue, and 37% of its units
+      sold on markdown at an average 28% off. Cut the depth or reprice the category.</div>
+      <span class="m">index 0.45 · avg discount 28%</span>
+    </div>
+    <div class="icard watch">
+      <div class="k">Watch · fit</div>
+      <div class="t">Oversized sells — and comes back</div>
+      <div class="d">Oversized runs an index of 1.30, but returns 23% of units against 10% for
+      regular fits. Strong demand, fragile margin. Watch the next drop's return window before reordering.</div>
+      <span class="m">index 1.30 · returns 23% vs 10%</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WHAT IT READS ============ -->
+<section id="reads" class="pad">
+  <div class="shead rv">
+    <h2>The AI reads the whole product page.</h2>
+    <span class="n">02</span>
+  </div>
+  <p class="rv rv-d1" style="max-width:62ch; font-size:14.5px; line-height:1.65; color:var(--muted); margin-bottom:28px;">
+    Not just the title. Tercile mines <b style="color:var(--ink)">the full page</b> — description copy,
+    existing tags, metafields, product names — plus a vision pass over product imagery in beta — and turns it into clean,
+    consistent attribute data across your whole catalogue. The tags you never had time to create.
+  </p>
+  <div class="reader rv rv-d2">
+    <div class="reader-src" aria-label="Example product page being read">
+      <div class="scanline" aria-hidden="true"></div>
+      <div class="psrc-title">Mara Coat — Washed Black</div>
+      <div class="psrc-kind label label-muted">Description</div>
+      <p class="psrc-body">An <em>oversized</em>, double-breasted coat cut from <em>80% virgin wool</em>.
+      Generous through the shoulder, dropped sleeve, falls below the knee. Shot on <em>Amélie</em>,
+      who wears a size S. Garment-washed for a soft, lived-in <em>black</em>.</p>
+      <div class="psrc-kind label label-muted">Tags</div>
+      <div class="psrc-tags"><i>outerwear</i><i>AW</i><i>wool</i><i>new-in</i></div>
+      <div class="psrc-kind label label-muted">Metafields</div>
+      <div class="psrc-meta">custom.composition: "80% wool / 20% PA"<br>custom.fit_note: "runs large"</div>
+      <div class="psrc-img"><span class="label label-muted">product imagery → vision pass</span></div>
+    </div>
+    <div class="reader-out" id="xout" aria-label="Extracted attributes">
+      <div class="label label-muted" style="margin-bottom:6px;">Extracted — with confidence</div>
+      <div class="xrow"><span class="a">Colour</span><span class="v">Black</span><span class="c hi">0.98</span></div>
+      <div class="xrow"><span class="a">Fabric</span><span class="v">Wool</span><span class="c hi">0.97</span></div>
+      <div class="xrow"><span class="a">Category</span><span class="v">Coat</span><span class="c hi">0.99</span></div>
+      <div class="xrow"><span class="a">Fit</span><span class="v">Oversized</span><span class="c hi">0.93</span></div>
+      <div class="xrow"><span class="a">Construction</span><span class="v">Woven</span><span class="c hi">0.91</span></div>
+      <div class="xrow"><span class="a">Season</span><span class="v">AW</span><span class="c hi">0.88</span></div>
+      <div class="xrow"><span class="a">Model</span><span class="v">Amélie</span><span class="c mid">0.74 → review</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SEGMENT WALL ============ -->
+<section id="segments" class="pad">
+  <div class="shead rv">
+    <h2>Every segment. One wall.</h2>
+    <span class="n">03</span>
+  </div>
+  <p class="rv rv-d1" style="max-width:62ch; font-size:14.5px; line-height:1.65; color:var(--muted); margin-bottom:28px;">
+    Twelve segments out of the box — plus anything you define yourself. Each one shows revenue
+    share and a <b style="color:var(--ink)">demand index</b>: revenue share ÷ assortment share.
+    Above 1, customers want more than you stocked. Below 1, you overbought.
+  </p>
+  <div class="wall rv rv-d2" id="wall">
+    <div class="cell">
+      <div class="cell-h"><b>Colour</b><i>tagged</i></div>
+      <div class="wrow"><span class="l">black</span><div class="mb"><i class="g" data-w="100"></i></div><span class="p">59%</span><span class="ix up">1.63</span></div>
+      <div class="wrow"><span class="l">ecru</span><div class="mb"><i data-w="34"></i></div><span class="p">20%</span><span class="ix">1.04</span></div>
+      <div class="wrow"><span class="l">olive</span><div class="mb"><i data-w="18"></i></div><span class="p">11%</span><span class="ix">0.92</span></div>
+      <div class="wrow"><span class="l">rust</span><div class="mb"><i data-w="10"></i></div><span class="p">6%</span><span class="ix dn">0.61</span></div>
+    </div>
+    <div class="cell">
+      <div class="cell-h"><b>Fabric</b><i>tagged</i></div>
+      <div class="wrow"><span class="l">wool</span><div class="mb"><i class="g" data-w="100"></i></div><span class="p">44%</span><span class="ix up">1.38</span></div>
+      <div class="wrow"><span class="l">cotton</span><div class="mb"><i data-w="62"></i></div><span class="p">27%</span><span class="ix">1.01</span></div>
+      <div class="wrow"><span class="l">denim</span><div class="mb"><i data-w="38"></i></div><span class="p">17%</span><span class="ix">0.96</span></div>
+      <div class="wrow"><span class="l">viscose</span><div class="mb"><i class="r" data-w="16"></i></div><span class="p">7%</span><span class="ix dn">0.45</span></div>
+    </div>
+    <div class="cell">
+      <div class="cell-h"><b>Fit</b><i>tagged</i></div>
+      <div class="wrow"><span class="l">oversized</span><div class="mb"><i class="g" data-w="100"></i></div><span class="p">48%</span><span class="ix up">1.30</span></div>
+      <div class="wrow"><span class="l">regular</span><div class="mb"><i data-w="74"></i></div><span class="p">36%</span><span class="ix">0.98</span></div>
+      <div class="wrow"><span class="l">slim</span><div class="mb"><i data-w="33"></i></div><span class="p">16%</span><span class="ix dn">0.70</span></div>
+      <div class="wrow"><span class="l" style="color:var(--muted)">returns: 23% vs 10%</span><div class="mb"></div><span class="p"></span><span class="ix na">⚠</span></div>
+    </div>
+    <div class="cell">
+      <div class="cell-h"><b>Shot on model</b><i>yours</i></div>
+      <div class="wrow"><span class="l">amélie</span><div class="mb"><i class="g" data-w="100"></i></div><span class="p">41%</span><span class="ix up">1.52</span></div>
+      <div class="wrow"><span class="l">jonas</span><div class="mb"><i data-w="58"></i></div><span class="p">24%</span><span class="ix">1.08</span></div>
+      <div class="wrow"><span class="l">flat-lay</span><div class="mb"><i class="r" data-w="40"></i></div><span class="p">16%</span><span class="ix dn">0.58</span></div>
+      <div class="wrow"><span class="l">ghost</span><div class="mb"><i data-w="46"></i></div><span class="p">19%</span><span class="ix">0.94</span></div>
+    </div>
+  </div>
+  <p class="rv" style="margin-top:16px;" >
+    <span class="label label-muted">colour · fabric · construction · fit · silhouette · print · gender · season · category + size, price band &amp; newness computed automatically + anything you invent</span>
+  </p>
+</section>
+
+<!-- ============ GAP ============ -->
+<section id="gap" class="pad">
+  <div class="shead rv">
+    <h2>See exactly where you over- and under-bought.</h2>
+    <span class="n">04</span>
+  </div>
+  <p class="rv rv-d1" style="max-width:62ch; font-size:14.5px; line-height:1.65; color:var(--muted); margin-bottom:28px;">
+    The gap chart puts assortment share against revenue share. Green right of the line:
+    this attribute earns <b style="color:var(--ink)">more than its shelf space</b>. Red left of it: shelf space wasted.
+    This is the chart your next buy should be built on.
+  </p>
+  <div class="gapwrap rv rv-d2" id="gaps">
+    <div class="gaprow"><span class="l">black</span><div class="gapbar"><i class="pos" data-w="46"></i></div><span class="d pos">+22.6 pp</span></div>
+    <div class="gaprow"><span class="l">wool</span><div class="gapbar"><i class="pos" data-w="25"></i></div><span class="d pos">+12.1 pp</span></div>
+    <div class="gaprow"><span class="l">oversized</span><div class="gapbar"><i class="pos" data-w="23"></i></div><span class="d pos">+11.0 pp</span></div>
+    <div class="gaprow"><span class="l">ecru</span><div class="gapbar"><i class="pos" data-w="2"></i></div><span class="d">+0.8 pp</span></div>
+    <div class="gaprow"><span class="l">slim</span><div class="gapbar"><i class="neg" data-w="14"></i></div><span class="d neg">−6.9 pp</span></div>
+    <div class="gaprow"><span class="l">rust</span><div class="gapbar"><i class="neg" data-w="16"></i></div><span class="d neg">−7.8 pp</span></div>
+    <div class="gaprow"><span class="l">viscose</span><div class="gapbar"><i class="neg" data-w="38"></i></div><span class="d neg">−18.4 pp</span></div>
+    <div class="gaplegend"><span class="label neg">← overbought</span><span class="label label-muted">assortment = revenue</span><span class="label pos">underbought →</span></div>
+  </div>
+</section>
+
+<!-- ============ TIMING ============ -->
+<section id="timing" class="pad">
+  <div class="shead rv">
+    <h2>When it sells is half the insight.</h2>
+    <span class="n">05</span>
+  </div>
+  <p class="rv rv-d1" style="max-width:62ch; font-size:14.5px; line-height:1.65; color:var(--muted); margin-bottom:28px;">
+    Start-of-winter wool is not end-of-winter wool. Tercile tracks every segment over time:
+    what your sale periods actually clear and <b style="color:var(--ink)">at what average discount</b>,
+    which drops sell hard then tail off, which gain momentum week after week.
+  </p>
+  <div class="tgrid rv rv-d2">
+    <div class="tpanel">
+      <div class="tt"><span>Wool — revenue by month</span><span class="label label-muted">peaks Nov–Jan</span></div>
+      <div class="tspark" data-bars="18,10,8,6,4,3,2,3,8,28,72,100" data-hot="10,11"></div>
+      <div class="tmonths"><span>J</span><span>F</span><span>M</span><span>A</span><span>M</span><span>J</span><span>J</span><span>A</span><span>S</span><span>O</span><span>N</span><span>D</span></div>
+    </div>
+    <div class="tpanel">
+      <div class="tt"><span>Linen — revenue by month</span><span class="label label-muted">peaks May–Aug</span></div>
+      <div class="tspark" data-bars="3,4,10,32,78,100,92,64,22,8,4,3" data-hot="4,5,6"></div>
+      <div class="tmonths"><span>J</span><span>F</span><span>M</span><span>A</span><span>M</span><span>J</span><span>J</span><span>A</span><span>S</span><span>O</span><span>N</span><span>D</span></div>
+    </div>
+    <div class="tpanel">
+      <div class="tt"><span>Drop 3 — revenue by month</span><span class="label label-muted">hard launch, long tail</span></div>
+      <div class="tspark" data-bars="100,52,30,18,12,9,7,6,5,4,3,3" data-cool="1"></div>
+      <div class="tmonths"><span>M1</span><span></span><span></span><span>M4</span><span></span><span></span><span></span><span>M8</span><span></span><span></span><span></span><span>M12</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ VERTICALS ============ -->
+<section id="verticals" class="pad">
+  <div class="shead rv">
+    <h2>Any catalogue with character.</h2>
+    <span class="n">06</span>
+  </div>
+  <p class="rv rv-d1" style="max-width:62ch; font-size:14.5px; line-height:1.65; color:var(--muted); margin-bottom:28px;">
+    The segments are yours to define. Whatever your product thinks in — metal, shape,
+    capacity, designer — Tercile tags it and prices its shelf space.
+  </p>
+  <div class="verts rv rv-d2">
+    <div class="vert">
+      <svg viewBox="0 0 200 140" aria-hidden="true">
+        <rect x="0" y="0" width="200" height="140" fill="#ffffff"/>
+        <path d="M70 118 L85 36 L100 50 L115 36 L130 118 Z" fill="#0b0b0b"/>
+        <path d="M85 36 L70 44 L58 70 L72 76 Z" fill="#0b0b0b"/>
+        <path d="M115 36 L130 44 L142 70 L128 76 Z" fill="#0b0b0b"/>
+        <rect x="96" y="60" width="8" height="34" fill="#f2f1ec"/>
+        <rect x="0" y="126" width="200" height="5" fill="#0b0b0b"/>
+      </svg>
+      <b>Fashion</b>
+      <span>colour · fabric · fit · construction · silhouette · season · shot on model</span>
+      <i>oversized index 1.30 — but 23% returns</i>
+    </div>
+    <div class="vert">
+      <svg viewBox="0 0 200 140" aria-hidden="true">
+        <rect x="0" y="0" width="200" height="140" fill="#ffffff"/>
+        <circle cx="100" cy="82" r="30" fill="none" stroke="#f5c400" stroke-width="11"/>
+        <path d="M100 30 L114 48 L100 62 L86 48 Z" fill="#0b0b0b"/>
+        <path d="M100 38 L107 48 L100 56 L93 48 Z" fill="#007a33"/>
+        <rect x="0" y="126" width="200" height="5" fill="#0b0b0b"/>
+      </svg>
+      <b>Jewelry</b>
+      <span>metal · stone · setting · carat band · collection · designer</span>
+      <i>gold: 30% of assortment, 50% of sales — buy more gold</i>
+    </div>
+    <div class="vert">
+      <svg viewBox="0 0 200 140" aria-hidden="true">
+        <rect x="0" y="0" width="200" height="140" fill="#ffffff"/>
+        <rect x="62" y="38" width="76" height="80" rx="16" fill="#0b0b0b"/>
+        <rect x="74" y="78" width="52" height="26" rx="6" fill="#f2f1ec"/>
+        <path d="M78 38 C78 20, 122 20, 122 38" fill="none" stroke="#0b0b0b" stroke-width="9"/>
+        <rect x="62" y="56" width="76" height="8" fill="#0038d0"/>
+        <rect x="0" y="126" width="200" height="5" fill="#0b0b0b"/>
+      </svg>
+      <b>Bags &amp; gear</b>
+      <span>shape · capacity · travel vs city · material · colourway</span>
+      <i>city silhouettes outsell travel 2:1 per shelf metre</i>
+    </div>
+  </div>
+</section>
+
+<!-- ============ VERDICTS ============ -->
+<section class="pad">
+  <div class="shead rv">
+    <h2>Plain verdicts, honest numbers.</h2>
+    <span class="n">07</span>
+  </div>
+  <div class="verdicts rv rv-d1">
+    <div class="verdict">
+      <div class="big buy">BUY MORE</div>
+      <p>Demand index ≥ 1.15 with enough sales behind it. Customers are pulling this
+      attribute off the shelf <b>faster than you stock it</b>.</p>
+    </div>
+    <div class="verdict">
+      <div class="big red">REDUCE</div>
+      <p>Index ≤ 0.7 — plus markdown dependency. If 37% of viscose units only sell
+      on discount, <b>the chart says it before the season ends</b>.</p>
+    </div>
+    <div class="verdict">
+      <div class="big hold">HOLD</div>
+      <p>In balance. No action needed — and Tercile says so instead of inventing urgency.</p>
+    </div>
+    <div class="verdict">
+      <div class="big hold">— COLLECTING</div>
+      <p>Below <b>30 net units</b>, we suppress the signal entirely. No verdict on
+      noise. Your buying decisions deserve a sample size.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SOVEREIGNTY ============ -->
+<section class="pad">
+  <div class="sov">
+    <div class="rv">
+      <h3>The AI suggests.<br><em>You decide.</em></h3>
+      <p>Every tag carries a confidence score. High-confidence tags apply automatically.
+      Anything uncertain lands in a review queue — confirm, reject, or fix in one click.
+      <b>And once you've touched a tag, the AI never overwrites it.</b> Your merchandising
+      judgment outranks the model, permanently.</p>
+      <p>Insight cards on every page are written by a senior-analyst-grade AI reading
+      your actual numbers — 3 to 10 cards, only when they're earned. No padding.</p>
+    </div>
+    <div class="queue rv rv-d2" aria-label="Review queue example">
+      <div class="qrow"><div class="w">Silk Slip Dress — Pistachio<small>colour → <b>green</b>? description says "pistachio"</small></div><span class="qconf">0.71</span><div class="qbtns"><span class="ok">Confirm</span><span class="no">Reject</span><span>Fix</span></div></div>
+      <div class="qrow"><div class="w">Boxy Overshirt — Indigo<small>fit → <b>oversized</b>? "generous, boxy cut"</small></div><span class="qconf">0.78</span><div class="qbtns"><span class="ok">Confirm</span><span class="no">Reject</span><span>Fix</span></div></div>
+      <div class="qrow"><div class="w">Mara Coat — Washed Black<small>model → <b>amélie</b>? "shot on Amélie"</small></div><span class="qconf">0.74</span><div class="qbtns"><span class="ok">Confirm</span><span class="no">Reject</span><span>Fix</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STATS ============ -->
+<section>
+  <div class="stats">
+    <div class="stat rv"><div class="v"><span data-count="12">0</span></div><div class="k label label-muted">Segments out of the box</div></div>
+    <div class="stat rv rv-d1"><div class="v"><span data-count="5">0</span><em>&nbsp;min</em></div><div class="k label label-muted">From install to first wall</div></div>
+    <div class="stat rv rv-d2"><div class="v"><span data-count="30">0</span></div><div class="k label label-muted">Net units before we call a signal</div></div>
+    <div class="stat rv rv-d3"><div class="v">∞</div><div class="k label label-muted">Custom segments — designer, drop, shoot…</div></div>
+  </div>
+</section>
+
+<!-- ============ PRICING ============ -->
+<section id="pricing" class="pad">
+  <div class="shead rv">
+    <h2>Pricing</h2>
+    <span class="n">08</span>
+  </div>
+  <p class="rv rv-d1" style="max-width:62ch; font-size:14.5px; line-height:1.65; color:var(--muted); margin-bottom:28px;">
+    <b style="color:var(--ink)">The beta deal:</b> everything free for your first 3 months.
+    After that you pick a plan — or stay on Free. No card up front, no auto-upgrade.
+  </p>
+  <div class="plans rv rv-d1">
+    <div class="plan">
+      <div class="name">Free</div>
+      <div class="price">$0</div>
+      <span class="label label-muted">try it on your store</span>
+      <ul>
+        <li>Up to 100 products</li>
+        <li>3 segments</li>
+        <li>Segment wall + demand index</li>
+        <li>30-day history</li>
+      </ul>
+    </div>
+    <div class="plan">
+      <div class="name">Starter</div>
+      <div class="price">$19<small>/mo</small></div>
+      <span class="label label-muted">for small stores</span>
+      <ul>
+        <li>Up to 500 products</li>
+        <li>All preset segments</li>
+        <li>AI insight cards on the overview</li>
+        <li>12-month history</li>
+      </ul>
+      <span class="beta">Beta: 3 months free</span>
+    </div>
+    <div class="plan hot">
+      <div class="name">Pro</div>
+      <div class="price">$49<small>/mo</small></div>
+      <span class="label label-muted">for growing brands</span>
+      <ul>
+        <li>Up to 2,500 products</li>
+        <li>Unlimited custom segments</li>
+        <li>Gap charts + AI insights on every page</li>
+        <li>Insight digest by email — weekly or monthly</li>
+        <li>Full order history</li>
+      </ul>
+      <span class="beta">Beta: 3 months free</span>
+    </div>
+    <div class="plan">
+      <div class="name">Growth</div>
+      <div class="price">$149<small>/mo</small></div>
+      <span class="label label-muted">for teams &amp; multi-store</span>
+      <ul>
+        <li>Unlimited products</li>
+        <li>Everything in Pro</li>
+        <li>Seasonality + newness analysis</li>
+        <li>Priority tagging + support</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FINAL CTA ============ -->
+<section id="beta" class="pad final">
+  <h2 class="rv">Stop buying<br>on <em>gut feel</em>.</h2>
+  <p class="rv rv-d1">Tercile is in free beta for Shopify stores with catalogues that have character — fashion, jewelry, accessories, gear.
+  Early access installs get every feature free for 3 months, white-glove segment setup, and a direct line to the founder.</p>
+  <div class="hero-ctas rv rv-d2">
+    <a class="btn primary" href="mailto:hello@tercile.app?subject=Tercile%20beta%20access&body=Store%20URL%3A%20">Get early access</a>
+  </div>
+</section>
+
+<footer>
+  <span class="label">Tercile</span>
+  <span class="label label-muted">Attribute analytics for Shopify stores</span>
+  <span class="label label-muted"><a href="mailto:hello@tercile.app">hello@tercile.app</a> · <a href="privacy.html" style="color:var(--muted)">Privacy</a></span>
+</footer>
+
+<script>
+  // marquee content
+  const segs = ["Colour","Fabric","Fit","Metal","Stone","Shape","Construction","Silhouette","Print","Season","Category","Capacity","Size","Price band","Newness","Designer","Shot on model","Drop","Collection"];
+  const mq = document.getElementById("mq");
+  mq.innerHTML = [...segs, ...segs].map(s => `<span>${s}</span>`).join("");
+
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // timing sparklines: build bars from data-bars, animate height on reveal
+  document.querySelectorAll(".tspark").forEach((el) => {
+    const vals = el.dataset.bars.split(",").map(Number);
+    const hot = new Set((el.dataset.hot ?? "").split(",").filter(Boolean).map(Number));
+    const cool = el.dataset.cool === "1";
+    el.innerHTML = vals
+      .map((v, i) => `<i class="${hot.has(i) ? "hot" : cool && i === 0 ? "cool" : ""}" data-h="${v}"></i>`)
+      .join("");
+  });
+
+  // scroll reveals
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (!e.isIntersecting) continue;
+      e.target.classList.add("in");
+
+      // bars inside revealed blocks
+      e.target.querySelectorAll("[data-w]").forEach((b, i) => {
+        setTimeout(() => { b.style.width = b.dataset.w + "%"; }, reduced ? 0 : 150 + i * 60);
+      });
+      e.target.querySelectorAll("[data-h]").forEach((b, i) => {
+        setTimeout(() => { b.style.height = b.dataset.h + "%"; }, reduced ? 0 : 150 + i * 40);
+      });
+      // extraction rows
+      if (e.target.querySelector(".xrow") || e.target.classList.contains("reader")) {
+        e.target.querySelectorAll(".xrow").forEach((r, i) => {
+          setTimeout(() => r.classList.add("on"), reduced ? 0 : 300 + i * 220);
+        });
+      }
+      // counters
+      e.target.querySelectorAll("[data-count]").forEach((el) => {
+        const target = +el.dataset.count;
+        if (reduced) { el.textContent = target; return; }
+        const t0 = performance.now(), dur = 900;
+        const tick = (t) => {
+          const p = Math.min(1, (t - t0) / dur);
+          el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+      io.unobserve(e.target);
+    }
+  }, { threshold: 0.2 });
+
+  document.querySelectorAll(".rv, .reader, #wall, #gaps, .stat").forEach((el) => io.observe(el));
+</script>
+</body>
+</html>

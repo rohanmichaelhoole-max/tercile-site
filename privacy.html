@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tercile — Privacy Policy</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#0b0b0b; --paper:#f2f1ec; --neg:#e30613; --action:#0038d0; --warn:#f5c400; --muted:#6b6a64; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Archivo, Helvetica, Arial, sans-serif; background: var(--paper); color: var(--ink); -webkit-font-smoothing: antialiased; }
+  .stripe { display: flex; height: 8px; }
+  .stripe i:nth-child(1) { flex: 1.2; background: var(--neg); }
+  .stripe i:nth-child(2) { flex: 1; background: var(--action); }
+  .stripe i:nth-child(3) { flex: 0.8; background: var(--warn); }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 20px 80px; }
+  h1 { font-weight: 900; font-size: clamp(32px, 6vw, 56px); text-transform: uppercase; letter-spacing: -0.02em; line-height: 0.95; border-bottom: 4px solid var(--ink); padding-bottom: 24px; }
+  .updated { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 14px 0 36px; }
+  h2 { font-weight: 900; font-size: 18px; text-transform: uppercase; letter-spacing: 0.04em; margin: 36px 0 10px; border-top: 1px solid var(--ink); padding-top: 18px; }
+  p, li { font-size: 14.5px; line-height: 1.7; color: #333; margin-bottom: 10px; }
+  ul { padding-left: 20px; }
+  b { color: var(--ink); }
+  a { color: var(--action); font-weight: 700; }
+  .home { display: inline-block; margin-bottom: 28px; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink); text-decoration: none; border-bottom: 2px solid var(--ink); }
+</style>
+</head>
+<body>
+<div class="stripe" aria-hidden="true"><i></i><i></i><i></i></div>
+<main>
+  <a class="home" href="index.html">← Tercile</a>
+  <h1>Privacy Policy</h1>
+  <div class="updated">Last updated: 9 November 2026</div>
+
+  <p>Tercile ("the app") provides attribute-level merchandising analytics for Shopify stores.
+  This policy explains what data the app accesses, what it stores, and how it is handled.
+  The app is operated by Formateca (contact: <a href="mailto:hello@tercile.app">hello@tercile.app</a>).</p>
+
+  <h2>What we access</h2>
+  <ul>
+    <li><b>Product data</b> — titles, descriptions, tags, metafields, variants, images, status. Used to generate attribute tags (e.g. colour, fabric, fit).</li>
+    <li><b>Order data</b> — line items, quantities, prices, discounts, refunds, and order dates. Used to compute revenue and demand metrics per attribute.</li>
+  </ul>
+
+  <h2>What we do not store</h2>
+  <p>We do not store customer personal information. No names, email addresses, shipping or
+  billing addresses, phone numbers, or payment details are persisted by the app. Order records
+  are stored only as line items, quantities, amounts, and dates.</p>
+
+  <h2>AI processing</h2>
+  <p>Product page text (and, where enabled, product images) is sent to Anthropic's Claude API
+  to generate attribute tags and analytical summaries. Only product information is sent — never
+  customer data. Anthropic does not train models on this API data.</p>
+
+  <h2>Storage and security</h2>
+  <p>Data is stored in a managed PostgreSQL database hosted on Railway. Access is restricted
+  to the app's own services. Data is transmitted over TLS.</p>
+
+  <h2>Data retention and deletion</h2>
+  <ul>
+    <li>Uninstalling the app stops all data collection immediately.</li>
+    <li>We honour Shopify's GDPR webhooks: <b>shop/redact</b> deletes all stored data for a shop after uninstall; <b>customers/redact</b> and <b>customers/data_request</b> are acknowledged — as we store no customer personal data, there is nothing to return or redact.</li>
+    <li>You may request earlier deletion at any time via <a href="mailto:hello@tercile.app">hello@tercile.app</a>.</li>
+  </ul>
+
+  <h2>Cookies</h2>
+  <p>The app runs embedded in the Shopify admin and uses only the session tokens Shopify
+  provides for authentication. This marketing site sets no cookies and runs no trackers.</p>
+
+  <h2>Changes</h2>
+  <p>We will update this page when the policy changes and note the date above.</p>
+</main>
+</body>
+</html>

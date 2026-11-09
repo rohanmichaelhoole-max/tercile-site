@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200">
+  <!-- Tercile mark: a distribution cut into its three equal parts.
+       Swiss block: cream ground, ink, one green for the top tercile. -->
+  <rect width="1200" height="1200" fill="#f2f1ec"/>
+  <!-- three equal columns, rising like the chart the app draws -->
+  <rect x="150"  y="620" width="260" height="430" fill="#0b0b0b"/>
+  <rect x="470"  y="420" width="260" height="630" fill="#0b0b0b"/>
+  <rect x="790"  y="150" width="260" height="900" fill="#007a33"/>
+  <!-- baseline rule, full bleed weight -->
+  <rect x="150" y="1050" width="900" height="24" fill="#0b0b0b"/>
+</svg>
