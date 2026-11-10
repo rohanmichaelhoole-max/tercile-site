@@ -395,7 +395,7 @@
     And the big ones can come to you — an insight digest by email, weekly or monthly, your call.
   </p>
   <div class="dmetrics rv rv-d1" aria-label="Metrics in the dataset">
-    <i>Revenue</i><i>Units</i><i>AOV</i><i>Full-price share</i><i>Avg discount</i><i>Return rate</i><i>Sell-through speed</i><i>Demand index</i><i class="soon">Views *</i><i class="soon">Add-to-cart *</i><i class="soon">Conversion *</i><i class="soon">Profit †</i><i class="soon">Margin rate †</i>
+    <i>Revenue</i><i>Units</i><i>AOV</i><i>Full-price share</i><i>Avg discount</i><i>Return rate</i><i>Sell-through speed</i><i>Demand vs shelf</i><i class="soon">Views *</i><i class="soon">Add-to-cart *</i><i class="soon">Conversion *</i><i class="soon">Profit †</i><i class="soon">Margin rate †</i>
   </div>
   <p class="rv rv-d1" style="font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); margin-bottom:24px;">* with the storefront pixel, coming in beta &nbsp;·&nbsp; † when unit costs live in Shopify</p>
   <div class="icards rv rv-d2">
@@ -404,28 +404,28 @@
       <div class="t">Black outsells its shelf 1.6 to 1</div>
       <div class="d">Black holds 36% of your assortment but takes 59% of revenue, nearly all at full
       price. The strongest signal in your catalogue — deepen the black buy before AW ordering closes.</div>
-      <span class="m">index 1.63 · 94% full-price</span>
+      <span class="m">+63% vs shelf · 94% full-price</span>
     </div>
     <div class="icard opportunity">
       <div class="k">Opportunity · shoot</div>
       <div class="t">Amélie sells the clothes</div>
-      <div class="d">Styles shot on Amélie run an index of 1.52; flat-lay shots run 0.58 on the same
+      <div class="d">Styles shot on Amélie sell +52% above their shelf share; flat-lay shots run −42% on the same
       categories. Rebook her for the next campaign and reshoot the flat-lay best-sellers.</div>
-      <span class="m">index 1.52 vs 0.58</span>
+      <span class="m">+52% vs −42% flat-lay</span>
     </div>
     <div class="icard inefficiency">
       <div class="k">Inefficiency · fabric</div>
       <div class="t">Viscose only moves at a discount</div>
       <div class="d">Viscose sits on 16% of your shelf, returns 7% of revenue, and 37% of its units
       sold on markdown at an average 28% off. Cut the depth or reprice the category.</div>
-      <span class="m">index 0.45 · avg discount 28%</span>
+      <span class="m">−55% vs shelf · avg discount 28%</span>
     </div>
     <div class="icard watch">
       <div class="k">Watch · fit</div>
       <div class="t">Oversized sells — and comes back</div>
-      <div class="d">Oversized runs an index of 1.30, but returns 23% of units against 10% for
+      <div class="d">Oversized sells +30% above its shelf share, but returns 23% of units against 10% for
       regular fits. Strong demand, fragile margin. Watch the next drop's return window before reordering.</div>
-      <span class="m">index 1.30 · returns 23% vs 10%</span>
+      <span class="m">+30% vs shelf · returns 23% vs 10%</span>
     </div>
   </div>
 </section>
@@ -476,37 +476,37 @@
   </div>
   <p class="rv rv-d1" style="max-width:62ch; font-size:14.5px; line-height:1.65; color:var(--muted); margin-bottom:28px;">
     Twelve segments out of the box — plus anything you define yourself. Each one shows revenue
-    share and a <b style="color:var(--ink)">demand index</b>: revenue share ÷ assortment share.
-    Above 1, customers want more than you stocked. Below 1, you overbought.
+    share and one honest number: <b style="color:var(--ink)">how far its revenue runs above or below its
+    share of shelf</b>. +63% means customers buy it faster than you stocked it. −55% means you overbought.
   </p>
   <div class="wall rv rv-d2" id="wall">
     <div class="cell">
       <div class="cell-h"><b>Colour</b><i>tagged</i></div>
-      <div class="wrow"><span class="l">black</span><div class="mb"><i class="g" data-w="100"></i></div><span class="p">59%</span><span class="ix up">1.63</span></div>
-      <div class="wrow"><span class="l">ecru</span><div class="mb"><i data-w="34"></i></div><span class="p">20%</span><span class="ix">1.04</span></div>
-      <div class="wrow"><span class="l">olive</span><div class="mb"><i data-w="18"></i></div><span class="p">11%</span><span class="ix">0.92</span></div>
-      <div class="wrow"><span class="l">rust</span><div class="mb"><i data-w="10"></i></div><span class="p">6%</span><span class="ix dn">0.61</span></div>
+      <div class="wrow"><span class="l">black</span><div class="mb"><i class="g" data-w="100"></i></div><span class="p">59%</span><span class="ix up">+63%</span></div>
+      <div class="wrow"><span class="l">ecru</span><div class="mb"><i data-w="34"></i></div><span class="p">20%</span><span class="ix">+4%</span></div>
+      <div class="wrow"><span class="l">olive</span><div class="mb"><i data-w="18"></i></div><span class="p">11%</span><span class="ix">−8%</span></div>
+      <div class="wrow"><span class="l">rust</span><div class="mb"><i data-w="10"></i></div><span class="p">6%</span><span class="ix dn">−39%</span></div>
     </div>
     <div class="cell">
       <div class="cell-h"><b>Fabric</b><i>tagged</i></div>
-      <div class="wrow"><span class="l">wool</span><div class="mb"><i class="g" data-w="100"></i></div><span class="p">44%</span><span class="ix up">1.38</span></div>
-      <div class="wrow"><span class="l">cotton</span><div class="mb"><i data-w="62"></i></div><span class="p">27%</span><span class="ix">1.01</span></div>
-      <div class="wrow"><span class="l">denim</span><div class="mb"><i data-w="38"></i></div><span class="p">17%</span><span class="ix">0.96</span></div>
-      <div class="wrow"><span class="l">viscose</span><div class="mb"><i class="r" data-w="16"></i></div><span class="p">7%</span><span class="ix dn">0.45</span></div>
+      <div class="wrow"><span class="l">wool</span><div class="mb"><i class="g" data-w="100"></i></div><span class="p">44%</span><span class="ix up">+38%</span></div>
+      <div class="wrow"><span class="l">cotton</span><div class="mb"><i data-w="62"></i></div><span class="p">27%</span><span class="ix">+1%</span></div>
+      <div class="wrow"><span class="l">denim</span><div class="mb"><i data-w="38"></i></div><span class="p">17%</span><span class="ix">−4%</span></div>
+      <div class="wrow"><span class="l">viscose</span><div class="mb"><i class="r" data-w="16"></i></div><span class="p">7%</span><span class="ix dn">−55%</span></div>
     </div>
     <div class="cell">
       <div class="cell-h"><b>Fit</b><i>tagged</i></div>
-      <div class="wrow"><span class="l">oversized</span><div class="mb"><i class="g" data-w="100"></i></div><span class="p">48%</span><span class="ix up">1.30</span></div>
-      <div class="wrow"><span class="l">regular</span><div class="mb"><i data-w="74"></i></div><span class="p">36%</span><span class="ix">0.98</span></div>
-      <div class="wrow"><span class="l">slim</span><div class="mb"><i data-w="33"></i></div><span class="p">16%</span><span class="ix dn">0.70</span></div>
+      <div class="wrow"><span class="l">oversized</span><div class="mb"><i class="g" data-w="100"></i></div><span class="p">48%</span><span class="ix up">+30%</span></div>
+      <div class="wrow"><span class="l">regular</span><div class="mb"><i data-w="74"></i></div><span class="p">36%</span><span class="ix">−2%</span></div>
+      <div class="wrow"><span class="l">slim</span><div class="mb"><i data-w="33"></i></div><span class="p">16%</span><span class="ix dn">−30%</span></div>
       <div class="wrow"><span class="l" style="color:var(--muted)">returns: 23% vs 10%</span><div class="mb"></div><span class="p"></span><span class="ix na">⚠</span></div>
     </div>
     <div class="cell">
       <div class="cell-h"><b>Shot on model</b><i>yours</i></div>
-      <div class="wrow"><span class="l">amélie</span><div class="mb"><i class="g" data-w="100"></i></div><span class="p">41%</span><span class="ix up">1.52</span></div>
-      <div class="wrow"><span class="l">jonas</span><div class="mb"><i data-w="58"></i></div><span class="p">24%</span><span class="ix">1.08</span></div>
-      <div class="wrow"><span class="l">flat-lay</span><div class="mb"><i class="r" data-w="40"></i></div><span class="p">16%</span><span class="ix dn">0.58</span></div>
-      <div class="wrow"><span class="l">ghost</span><div class="mb"><i data-w="46"></i></div><span class="p">19%</span><span class="ix">0.94</span></div>
+      <div class="wrow"><span class="l">amélie</span><div class="mb"><i class="g" data-w="100"></i></div><span class="p">41%</span><span class="ix up">+52%</span></div>
+      <div class="wrow"><span class="l">jonas</span><div class="mb"><i data-w="58"></i></div><span class="p">24%</span><span class="ix">+8%</span></div>
+      <div class="wrow"><span class="l">flat-lay</span><div class="mb"><i class="r" data-w="40"></i></div><span class="p">16%</span><span class="ix dn">−42%</span></div>
+      <div class="wrow"><span class="l">ghost</span><div class="mb"><i data-w="46"></i></div><span class="p">19%</span><span class="ix">−6%</span></div>
     </div>
   </div>
   <p class="rv" style="margin-top:16px;" >
@@ -589,7 +589,7 @@
       </svg>
       <b>Fashion</b>
       <span>colour · fabric · fit · construction · silhouette · season · shot on model</span>
-      <i>oversized index 1.30 — but 23% returns</i>
+      <i>oversized +30% vs shelf — but 23% returns</i>
     </div>
     <div class="vert">
       <svg viewBox="0 0 200 140" aria-hidden="true">
@@ -628,12 +628,12 @@
   <div class="verdicts rv rv-d1">
     <div class="verdict">
       <div class="big buy">BUY MORE</div>
-      <p>Demand index ≥ 1.15 with enough sales behind it. Customers are pulling this
+      <p>At least +15% vs shelf share, with enough sales behind it. Customers are pulling this
       attribute off the shelf <b>faster than you stock it</b>.</p>
     </div>
     <div class="verdict">
       <div class="big red">REDUCE</div>
-      <p>Index ≤ 0.7 — plus markdown dependency. If 37% of viscose units only sell
+      <p>−30% vs shelf or worse — plus markdown dependency. If 37% of viscose units only sell
       on discount, <b>the chart says it before the season ends</b>.</p>
     </div>
     <div class="verdict">
@@ -696,7 +696,7 @@
       <ul>
         <li>Up to 50 products</li>
         <li>3 segments</li>
-        <li>Segment wall + demand index</li>
+        <li>Segment wall + demand-vs-shelf</li>
         <li>30-day history</li>
       </ul>
     </div>
